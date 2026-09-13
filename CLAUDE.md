@@ -19,7 +19,7 @@ Small VPS infrastructure repo: bash scripts + nginx site configs for hosting per
 - Validate nginx config: `sudo nginx -t`
 - Lint scripts: `shellcheck scripts/*.sh`
 - Test cert renewal: `sudo certbot renew --dry-run`
-- Deploy on the VPS: `git pull` then re-run `enable-site.sh` for any affected site.
+- Deploy on the VPS: `git pull` in `/root/k4yod3` (that is where it is cloned — the nginx symlinks point there), then re-run `enable-site.sh` for any affected site.
 
 ## Conventions
 

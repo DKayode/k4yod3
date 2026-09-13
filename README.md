@@ -16,9 +16,13 @@ scripts/
 ## First-time VPS setup
 
 ```sh
-sudo mkdir -p /srv && sudo git clone git@github.com:DKayode/k4yod3.git /srv/k4yod3
-sudo /srv/k4yod3/scripts/bootstrap-vps.sh
+sudo git clone git@github.com:DKayode/k4yod3.git /root/k4yod3
+sudo /root/k4yod3/scripts/bootstrap-vps.sh
 ```
+
+The clone path matters: `enable-site.sh` symlinks from wherever the repo sits
+into `sites-enabled`, so moving the repo later breaks every enabled site. On the
+current VPS it lives at `/root/k4yod3`.
 
 Tested on Debian/Ubuntu. Re-running is safe.
 
@@ -29,7 +33,7 @@ Tested on Debian/Ubuntu. Re-running is safe.
 3. Start the app stack on the VPS so its loopback upstream is live (see per-app section below).
 4. Enable the nginx site:
    ```sh
-   sudo /srv/k4yod3/scripts/enable-site.sh <sub> --email you@example.com
+   sudo /root/k4yod3/scripts/enable-site.sh <sub> --email you@example.com
    ```
    `--email` is required only on first issuance. Subsequent runs skip certbot and just refresh the symlink + reload.
 
@@ -49,7 +53,7 @@ Use the `host-nginx` overlay *instead of* `prod.yml` so the bundled Caddy servic
 cd /srv/nook
 docker compose -f docker-compose.yml -f deploy/docker-compose.host-nginx.yml pull
 docker compose -f docker-compose.yml -f deploy/docker-compose.host-nginx.yml up -d
-sudo /srv/k4yod3/scripts/enable-site.sh nook --email you@example.com
+sudo /root/k4yod3/scripts/enable-site.sh nook --email you@example.com
 ```
 
 `.env` must set `NEXTAUTH_URL=https://nook.k4yod3.com` and `AUTH_TRUST_HOST=true` — nginx terminates TLS, so Next sees plain HTTP from the proxy and Auth.js otherwise rejects the cookie.
@@ -64,7 +68,7 @@ directly and nginx does the rest.
 cd /srv/btp
 cp deploy/.env.example deploy/.env   # first time only, then fill it in
 docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
-sudo /srv/k4yod3/scripts/enable-site.sh btp --email you@example.com
+sudo /root/k4yod3/scripts/enable-site.sh btp --email you@example.com
 ```
 
 Two things about this app are easy to get wrong:
