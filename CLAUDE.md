@@ -10,7 +10,7 @@ Small VPS infrastructure repo: bash scripts + nginx site configs for hosting per
 
 ## Layout
 
-- `nginx/sites-available/` — per-site nginx config (currently `nook.k4yod3.com.conf`).
+- `nginx/sites-available/` — per-site nginx config, one `.conf` per subdomain.
 - `scripts/bootstrap-vps.sh` — one-time VPS setup.
 - `scripts/enable-site.sh` — per-app cert issuance + symlink into `sites-enabled` + nginx reload. Uses the ACME stub trick so cert issuance works before the real config is enabled.
 
@@ -34,3 +34,4 @@ Small VPS infrastructure repo: bash scripts + nginx site configs for hosting per
 | --- | --- |
 | nook.k4yod3.com | loopback Docker container (see site conf) |
 | stride.k4yod3.com | `127.0.0.1:3002` — static PWA (Vite build) in Docker container |
+| btp.k4yod3.com | `127.0.0.1:3003` — ChantierPro, Next.js SSR in Docker container |

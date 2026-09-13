@@ -35,9 +35,11 @@ Tested on Debian/Ubuntu. Re-running is safe.
 
 ## Apps
 
-| Subdomain | Upstream | Source repo | Compose overlay |
+| Subdomain | Upstream | Source repo | Compose file |
 |---|---|---|---|
 | `nook.k4yod3.com` | `127.0.0.1:3001` (Next.js, `web` container) | [DKayode/Nook](https://github.com/DKayode/Nook) | `deploy/docker-compose.host-nginx.yml` |
+| `stride.k4yod3.com` | `127.0.0.1:3002` (static PWA, Vite build) | — | — |
+| `btp.k4yod3.com` | `127.0.0.1:3003` (Next.js, `web` container) | ChantierPro (`daadjibi/btp`) | `deploy/docker-compose.yml` |
 
 ### nook deploy (host-nginx mode)
 
@@ -51,6 +53,44 @@ sudo /srv/k4yod3/scripts/enable-site.sh nook --email you@example.com
 ```
 
 `.env` must set `NEXTAUTH_URL=https://nook.k4yod3.com` and `AUTH_TRUST_HOST=true` — nginx terminates TLS, so Next sees plain HTTP from the proxy and Auth.js otherwise rejects the cookie.
+
+### btp deploy (ChantierPro)
+
+Gestion de chantier for Beninese BTP firms. A single compose file — unlike nook
+there is no bundled proxy to switch off, so the container binds `127.0.0.1:3003`
+directly and nginx does the rest.
+
+```sh
+cd /srv/btp
+cp deploy/.env.example deploy/.env   # first time only, then fill it in
+docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
+sudo /srv/k4yod3/scripts/enable-site.sh btp --email you@example.com
+```
+
+Two things about this app are easy to get wrong:
+
+**The Supabase URL and anon key are baked into the image at build time.** Next
+inlines every `NEXT_PUBLIC_*` value into the client bundle, so changing the
+Supabase project means `up -d --build`, not a restart. They are also passed as
+run-time environment because the server half reads them from the process.
+
+**`NEXT_PUBLIC_APP_URL` must be `https://btp.k4yod3.com`.** It is what the weekly
+share links are built from, and those links go to owners abroad over WhatsApp —
+get it wrong and every one of them points nowhere.
+
+The site config adds two rules beyond the usual pattern: `/r/` (the public report
+links) carries `X-Robots-Tag: noindex`, since those URLs get forwarded into group
+chats and must not end up in a search index; and `/api/jobs/rapport-hebdo` is
+restricted to loopback, so the weekly cron endpoint is not reachable from outside
+the VPS at all.
+
+Schedule the weekly run from the VPS itself — from outside, nginx will refuse it:
+
+```sh
+# /etc/cron.d/chantierpro — Sunday 20:00
+0 20 * * 0 root curl -fsS -X POST http://127.0.0.1:3003/api/jobs/rapport-hebdo \
+  -H "Authorization: Bearer $CRON_SECRET" >/dev/null
+```
 
 ## Renewal
 
