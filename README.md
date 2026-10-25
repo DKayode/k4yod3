@@ -44,6 +44,7 @@ Tested on Debian/Ubuntu. Re-running is safe.
 | `nook.k4yod3.com` | `127.0.0.1:3001` (Next.js, `web` container) | [DKayode/Nook](https://github.com/DKayode/Nook) | `deploy/docker-compose.host-nginx.yml` |
 | `stride.k4yod3.com` | `127.0.0.1:3002` (static PWA, Vite build) | — | — |
 | `btp.k4yod3.com` | `127.0.0.1:3003` (Next.js, `web` container) | ChantierPro (`daadjibi/btp`) | `deploy/docker-compose.yml` |
+| `medurgiax.k4yod3.com` | `127.0.0.1:3004` (FastAPI, `api` container) | [DKayode/medurgiax-backend](https://github.com/DKayode/medurgiax-backend) | `deploy/docker-compose.yml` |
 
 ### nook deploy (host-nginx mode)
 
@@ -95,6 +96,25 @@ Schedule the weekly run from the VPS itself — from outside, nginx will refuse 
 0 20 * * 0 root curl -fsS -X POST http://127.0.0.1:3003/api/jobs/rapport-hebdo \
   -H "Authorization: Bearer $CRON_SECRET" >/dev/null
 ```
+
+### medurgiax deploy (test server)
+
+Backend of the MedUrgiaX triage / telemedicine app: FastAPI + Postgres, the API
+bound to `127.0.0.1:3004`. The VPS has no GitHub key for this repo, so the code
+is copied from a dev machine.
+
+```sh
+rsync -a --delete --exclude .venv --exclude .git --exclude deploy/.env \
+  medurgiax-backend/ root@217.160.9.92:/srv/medurgiax-backend/
+cd /srv/medurgiax-backend/deploy
+./setup.sh medurgiax.k4yod3.com      # first time only: writes .env with fresh secrets
+docker compose up -d --build         # migrations run when the API starts
+sudo /root/k4yod3/scripts/enable-site.sh medurgiax --email you@example.com
+```
+
+**Test data only.** It handles health data and this VPS is not HDS-certified.
+**Back up `deploy/.env`** off the server: losing `DATA_ENCRYPTION_KEY` makes the
+encrypted columns unreadable.
 
 ## Renewal
 
