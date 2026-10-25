@@ -35,4 +35,4 @@ Small VPS infrastructure repo: bash scripts + nginx site configs for hosting per
 | nook.k4yod3.com | loopback Docker container (see site conf) |
 | stride.k4yod3.com | `127.0.0.1:3002` — static PWA (Vite build) in Docker container |
 | btp.k4yod3.com | `127.0.0.1:3003` — ChantierPro, Next.js SSR in Docker container |
-| medurgiax.k4yod3.com | `127.0.0.1:3004` — MedUrgiaX FastAPI backend + Postgres (Docker Compose, test data only) |
+| medurgiax.k4yod3.com | `127.0.0.1:3004` — MedUrgiaX FastAPI backend + Postgres for `/api/`, `/docs`, `/healthz`; `127.0.0.1:3005` — static web app for the rest (test data only) |

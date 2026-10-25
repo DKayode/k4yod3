@@ -44,7 +44,7 @@ Tested on Debian/Ubuntu. Re-running is safe.
 | `nook.k4yod3.com` | `127.0.0.1:3001` (Next.js, `web` container) | [DKayode/Nook](https://github.com/DKayode/Nook) | `deploy/docker-compose.host-nginx.yml` |
 | `stride.k4yod3.com` | `127.0.0.1:3002` (static PWA, Vite build) | — | — |
 | `btp.k4yod3.com` | `127.0.0.1:3003` (Next.js, `web` container) | ChantierPro (`daadjibi/btp`) | `deploy/docker-compose.yml` |
-| `medurgiax.k4yod3.com` | `127.0.0.1:3004` (FastAPI, `api` container) | [DKayode/medurgiax-backend](https://github.com/DKayode/medurgiax-backend) | `deploy/docker-compose.yml` |
+| `medurgiax.k4yod3.com` | `127.0.0.1:3004` (FastAPI, `api`) for `/api/`, `/docs`, `/healthz`; `127.0.0.1:3005` (static web app) for the rest | [DKayode/medurgiax-backend](https://github.com/DKayode/medurgiax-backend) | `deploy/docker-compose.yml` |
 
 ### nook deploy (host-nginx mode)
 
@@ -109,6 +109,8 @@ rsync -a --delete --exclude .venv --exclude .git --exclude deploy/.env \
 cd /srv/medurgiax-backend/deploy
 ./setup.sh medurgiax.k4yod3.com      # first time only: writes .env with fresh secrets
 docker compose up -d --build         # migrations run when the API starts
+cd /srv/medurgiax-frontend/deploy   # web app, copied the same way
+API_BASE_URL=https://medurgiax.k4yod3.com docker compose up -d --build
 sudo /root/k4yod3/scripts/enable-site.sh medurgiax --email you@example.com
 ```
 
