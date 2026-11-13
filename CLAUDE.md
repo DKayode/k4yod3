@@ -36,3 +36,4 @@ Small VPS infrastructure repo: bash scripts + nginx site configs for hosting per
 | stride.k4yod3.com | `127.0.0.1:3002` — static PWA (Vite build) in Docker container |
 | btp.k4yod3.com | `127.0.0.1:3003` — ChantierPro, Next.js SSR in Docker container |
 | medurgiax.k4yod3.com | `127.0.0.1:3004` — MedUrgiaX FastAPI backend + Postgres for `/api/`, `/docs`, `/healthz`; `127.0.0.1:3005` — static web app for the rest (test data only) |
+| mineor.k4yod3.com | `127.0.0.1:3006` — Mineor Gaz Laravel API (stack nginx + PHP-FPM); `127.0.0.1:3007` — Laravel Reverb for `/app/` WebSockets |

@@ -45,6 +45,7 @@ Tested on Debian/Ubuntu. Re-running is safe.
 | `stride.k4yod3.com` | `127.0.0.1:3002` (static PWA, Vite build) | — | — |
 | `btp.k4yod3.com` | `127.0.0.1:3003` (Next.js, `web` container) | ChantierPro (`daadjibi/btp`) | `deploy/docker-compose.yml` |
 | `medurgiax.k4yod3.com` | `127.0.0.1:3004` (FastAPI, `api`) for `/api/`, `/docs`, `/healthz`; `127.0.0.1:3005` (static web app) for the rest | [DKayode/medurgiax-backend](https://github.com/DKayode/medurgiax-backend) | `deploy/docker-compose.yml` |
+| `mineor.k4yod3.com` | `127.0.0.1:3006` (Laravel API: stack nginx + PHP-FPM) for everything; `127.0.0.1:3007` (Laravel Reverb) for `/app/` WebSockets | [DKayode/mineor-gaz](https://github.com/DKayode/mineor-gaz) | `infra/` (production overlay to come, GAZ-110) |
 
 ### nook deploy (host-nginx mode)
 
@@ -117,6 +118,30 @@ sudo /root/k4yod3/scripts/enable-site.sh medurgiax --email you@example.com
 **Test data only.** It handles health data and this VPS is not HDS-certified.
 **Back up `deploy/.env`** off the server: losing `DATA_ENCRYPTION_KEY` makes the
 encrypted columns unreadable.
+
+### mineor deploy (Mineor Gaz API)
+
+Laravel API for the gas-delivery platform (Bénin). Working domain until
+`mineor.bj` is wired in. The stack publishes two loopback ports:
+
+- `127.0.0.1:3006` — the stack's nginx in front of PHP-FPM (API, public pages
+  such as account deletion for Google Play);
+- `127.0.0.1:3007` — Laravel Reverb. Clients connect to
+  `wss://mineor.k4yod3.com/app/<REVERB_APP_KEY>` on 443.
+
+The production compose overlay (publishing those two ports, no dev services
+such as Mailpit) is not written yet: it belongs in the mineor-gaz repo (GAZ-110).
+
+```sh
+cd /srv/mineor-gaz
+# start the stack once the production overlay exists, then:
+sudo /root/k4yod3/scripts/enable-site.sh mineor --email you@example.com
+```
+
+`.env` must set `APP_URL=https://mineor.k4yod3.com`, and Laravel must trust the
+proxy (`trustProxies`) so it sees HTTPS through `X-Forwarded-Proto`; otherwise
+generated URLs and signed links come out as `http://`. `/horizon` is loopback
+only: open it through `ssh -L 3006:127.0.0.1:3006 root@217.160.9.92`.
 
 ## Renewal
 
