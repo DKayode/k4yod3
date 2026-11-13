@@ -2,8 +2,10 @@
 # Enable an nginx site backed by Let's Encrypt + this repo's config.
 #
 # Usage: enable-site.sh <subdomain> [--email <addr>] [--domain <root>]
-#   <subdomain>   e.g. "nook" → nook.k4yod3.com
-#   --email       required on first issuance for Let's Encrypt
+#   <subdomain>   e.g. "nook" → nook.k4yod3.com ; "@" for the apex of --domain
+#                 (e.g. "@ --domain mineor.bj" → mineor.bj)
+#   --email       Let's Encrypt contact on first issuance; without it, certbot reuses the
+#                 VPS's existing account (registered without an email)
 #   --domain      override root domain (default: k4yod3.com)
 #
 # Idempotent — re-running after the cert exists just refreshes the symlink and reloads.
@@ -31,7 +33,7 @@ while (( $# > 0 )); do
   esac
 done
 
-FQDN="${SUBDOMAIN}.${ROOT_DOMAIN}"
+if [[ "$SUBDOMAIN" == "@" ]]; then FQDN="$ROOT_DOMAIN"; else FQDN="${SUBDOMAIN}.${ROOT_DOMAIN}"; fi
 SITE_CONF="${REPO_DIR}/nginx/sites-available/${FQDN}.conf"
 ENABLED_LINK="/etc/nginx/sites-enabled/${FQDN}.conf"
 CERT_DIR="/etc/letsencrypt/live/${FQDN}"
@@ -41,9 +43,9 @@ log() { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 [[ -f "$SITE_CONF" ]] || { echo "missing config: $SITE_CONF" >&2; exit 1; }
 
 if [[ ! -s "${CERT_DIR}/fullchain.pem" ]]; then
-  [[ -n "$EMAIL" ]] || { echo "first-time issuance for ${FQDN} needs --email <addr>" >&2; exit 64; }
 
   log "Issuing Let's Encrypt cert for ${FQDN}"
+  if [[ -n "$EMAIL" ]]; then EMAIL_ARGS=(--email "$EMAIL"); else EMAIL_ARGS=(--register-unsafely-without-email); fi
   mkdir -p /var/www/certbot
 
   # Temporary HTTP-only stub so nginx can serve the ACME challenge while the
@@ -62,7 +64,7 @@ EOF
   systemctl reload nginx
 
   certbot certonly --webroot -w /var/www/certbot \
-    -d "$FQDN" --email "$EMAIL" --agree-tos --non-interactive --no-eff-email
+    -d "$FQDN" "${EMAIL_ARGS[@]}" --agree-tos --non-interactive --no-eff-email
 
   rm -f "$STUB"
 fi

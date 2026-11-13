@@ -10,7 +10,8 @@ Small VPS infrastructure repo: bash scripts + nginx site configs for hosting per
 
 ## Layout
 
-- `nginx/sites-available/` — per-site nginx config, one `.conf` per subdomain.
+- `nginx/sites-available/` — per-site nginx config, one `.conf` per hostname.
+- `nginx/snippets/` — routing shared by several hostnames of one app (included by absolute path `/root/k4yod3/...`).
 - `scripts/bootstrap-vps.sh` — one-time VPS setup.
 - `scripts/enable-site.sh` — per-app cert issuance + symlink into `sites-enabled` + nginx reload. Uses the ACME stub trick so cert issuance works before the real config is enabled.
 
@@ -37,3 +38,5 @@ Small VPS infrastructure repo: bash scripts + nginx site configs for hosting per
 | btp.k4yod3.com | `127.0.0.1:3003` — ChantierPro, Next.js SSR in Docker container |
 | medurgiax.k4yod3.com | `127.0.0.1:3004` — MedUrgiaX FastAPI backend + Postgres for `/api/`, `/docs`, `/healthz`; `127.0.0.1:3005` — static web app for the rest (test data only) |
 | mineor.k4yod3.com | `127.0.0.1:3006` — Mineor Gaz Laravel API (stack nginx + PHP-FPM); `127.0.0.1:3007` — Laravel Reverb for `/app/` WebSockets |
+| mineor.bj | same upstreams as mineor.k4yod3.com, via `nginx/snippets/mineor-app.conf` (production domain; HSTS without includeSubDomains on the apex) |
+

@@ -34,6 +34,8 @@ Tested on Debian/Ubuntu. Re-running is safe.
 4. Enable the nginx site:
    ```sh
    sudo /root/k4yod3/scripts/enable-site.sh <sub> --email you@example.com
+   # apex of another domain, e.g. mineor.bj:
+   sudo /root/k4yod3/scripts/enable-site.sh @ --domain mineor.bj
    ```
    `--email` is required only on first issuance. Subsequent runs skip certbot and just refresh the symlink + reload.
 
@@ -46,6 +48,7 @@ Tested on Debian/Ubuntu. Re-running is safe.
 | `btp.k4yod3.com` | `127.0.0.1:3003` (Next.js, `web` container) | ChantierPro (`daadjibi/btp`) | `deploy/docker-compose.yml` |
 | `medurgiax.k4yod3.com` | `127.0.0.1:3004` (FastAPI, `api`) for `/api/`, `/docs`, `/healthz`; `127.0.0.1:3005` (static web app) for the rest | [DKayode/medurgiax-backend](https://github.com/DKayode/medurgiax-backend) | `deploy/docker-compose.yml` |
 | `mineor.k4yod3.com` | `127.0.0.1:3006` (Laravel API: stack nginx + PHP-FPM) for everything; `127.0.0.1:3007` (Laravel Reverb) for `/app/` WebSockets | [DKayode/mineor-gaz](https://github.com/DKayode/mineor-gaz) | `infra/` (production overlay to come, GAZ-110) |
+| `mineor.bj` | same as `mineor.k4yod3.com` (shared routing in `nginx/snippets/mineor-app.conf`) — production domain of Mineor Gaz | [DKayode/mineor-gaz](https://github.com/DKayode/mineor-gaz) | `infra/compose.prod.yaml` |
 
 ### nook deploy (host-nginx mode)
 
@@ -148,6 +151,15 @@ refuses the `log` SMS driver in production. Laravel trusts the private Docker
 ranges via `TRUSTED_PROXIES`, so it sees HTTPS and the client IP from the
 headers nginx sets. `/horizon` is loopback only: open it through
 `ssh -L 3006:127.0.0.1:3006 root@217.160.9.92`.
+
+### mineor.bj (production domain)
+
+`nginx/sites-available/mineor.bj.conf` serves the same stack as `mineor.k4yod3.com`;
+both include `nginx/snippets/mineor-app.conf`, so routing changes go in the snippet
+once. Only the apex resolves (no `www.`). HSTS is sent **without** `includeSubDomains`
+on the apex: other `*.mineor.bj` hosts (mail provider, webmail) are not ours to force
+onto HTTPS. Enabled with `enable-site.sh @ --domain mineor.bj` (certbot reuses the
+VPS account; no email was registered).
 
 ## Renewal
 
