@@ -129,19 +129,25 @@ Laravel API for the gas-delivery platform (Bénin). Working domain until
 - `127.0.0.1:3007` — Laravel Reverb. Clients connect to
   `wss://mineor.k4yod3.com/app/<REVERB_APP_KEY>` on 443.
 
-The production compose overlay (publishing those two ports, no dev services
-such as Mailpit) is not written yet: it belongs in the mineor-gaz repo (GAZ-110).
+The stack lives in the mineor-gaz repo (`infra/compose.prod.yaml`); the VPS has
+no GitHub key for it, so it is deployed from a dev machine with
+`infra/deploy/deploy.sh` (rsync to `/srv/mineor-gaz`, build on the VPS,
+migrations, health check). Secrets are in `/srv/mineor-gaz/infra/.env.production`,
+created once by `infra/deploy/setup-env.sh` — **back it up off the server**:
+`APP_KEY` encrypts stored ID documents.
 
 ```sh
-cd /srv/mineor-gaz
-# start the stack once the production overlay exists, then:
+# from a mineor-gaz checkout on a dev machine
+infra/deploy/deploy.sh
+# first time only, on the VPS (cert issued 2026-11-13 on the existing certbot account)
 sudo /root/k4yod3/scripts/enable-site.sh mineor --email you@example.com
 ```
 
-`.env` must set `APP_URL=https://mineor.k4yod3.com`, and Laravel must trust the
-proxy (`trustProxies`) so it sees HTTPS through `X-Forwarded-Proto`; otherwise
-generated URLs and signed links come out as `http://`. `/horizon` is loopback
-only: open it through `ssh -L 3006:127.0.0.1:3006 root@217.160.9.92`.
+It runs as `APP_ENV=staging` until real SMS (Infobip) is configured: the API
+refuses the `log` SMS driver in production. Laravel trusts the private Docker
+ranges via `TRUSTED_PROXIES`, so it sees HTTPS and the client IP from the
+headers nginx sets. `/horizon` is loopback only: open it through
+`ssh -L 3006:127.0.0.1:3006 root@217.160.9.92`.
 
 ## Renewal
 
