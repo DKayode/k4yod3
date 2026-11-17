@@ -188,6 +188,20 @@ sudo /root/k4yod3/scripts/enable-site.sh api.pro --domain mineor.bj
 sudo /root/k4yod3/scripts/enable-site.sh admin.pro --domain mineor.bj
 ```
 
+Deployed 2026-11-17 as user `mineor` in `/opt/mineor/mineor-{backend,frontend}` (read-only
+GitHub deploy keys in `/home/mineor/.ssh`, aliases `github-mineor-backend|frontend`). Redeploy:
+
+```sh
+sudo -iu mineor /opt/mineor/mineor-backend/infra/deploy/deploy.sh main
+sudo -iu mineor /opt/mineor/mineor-frontend/infra/deploy/deploy.sh main
+```
+
+`mineor`'s crontab runs the daily DB backup (`/var/backups/mineor-backend`) and both
+healthchecks; logs in `/var/log/mineor/`. **Back up `infra/.env.production` off the server**:
+`APP_KEY` and the DB password were generated there. Don't run the apps' `setup-server.sh` on
+this VPS: it enables ufw with deny-incoming, which would cut LiveKit (host network, 3478/udp,
+7881/tcp, media UDP) for medurgiax.
+
 The API site rate-limits `/api/auth/(login|request-code|verify-code|forgot-password|reset-password)`
 to 30 req/min/IP and everything else to 20 req/s/IP, and hides `/docs/` (open it through
 `ssh -L 3010:127.0.0.1:3010 root@217.160.9.92`). The FedaPay webhook is
