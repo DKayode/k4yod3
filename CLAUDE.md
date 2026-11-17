@@ -39,4 +39,5 @@ Small VPS infrastructure repo: bash scripts + nginx site configs for hosting per
 | medurgiax.k4yod3.com | `127.0.0.1:3004` — MedUrgiaX FastAPI backend + Postgres for `/api/`, `/docs`, `/healthz`; `127.0.0.1:3005` — static web app for the rest (test data only) |
 | mineor.k4yod3.com | `127.0.0.1:3006` — Mineor Gaz Laravel API (stack nginx + PHP-FPM); `127.0.0.1:3007` — Laravel Reverb for `/app/` WebSockets |
 | mineor.bj | same upstreams as mineor.k4yod3.com, via `nginx/snippets/mineor-app.conf` (production domain; HSTS without includeSubDomains on the apex) |
-
+| api.pro.mineor.bj | `127.0.0.1:3008` — Mineor Pro Laravel API (oryx-backend; Apache + PHP); rate limits on `/api/auth/*`, `/docs/` hidden |
+| admin.pro.mineor.bj | `127.0.0.1:3009` — Mineor Pro admin, Angular SPA (oryx-frontend); CSP set by the container, host adds HSTS only |

@@ -49,6 +49,8 @@ Tested on Debian/Ubuntu. Re-running is safe.
 | `medurgiax.k4yod3.com` | `127.0.0.1:3004` (FastAPI, `api`) for `/api/`, `/docs`, `/healthz`; `127.0.0.1:3005` (static web app) for the rest | [DKayode/medurgiax-backend](https://github.com/DKayode/medurgiax-backend) | `deploy/docker-compose.yml` |
 | `mineor.k4yod3.com` | `127.0.0.1:3006` (Laravel API: stack nginx + PHP-FPM) for everything; `127.0.0.1:3007` (Laravel Reverb) for `/app/` WebSockets | [DKayode/mineor-gaz](https://github.com/DKayode/mineor-gaz) | `infra/` (production overlay to come, GAZ-110) |
 | `mineor.bj` | same as `mineor.k4yod3.com` (shared routing in `nginx/snippets/mineor-app.conf`) — production domain of Mineor Gaz | [DKayode/mineor-gaz](https://github.com/DKayode/mineor-gaz) | `infra/compose.prod.yaml` |
+| `api.pro.mineor.bj` | `127.0.0.1:3008` (Mineor Pro Laravel API, `app` container: Apache + PHP) | oryx-backend | `infra/compose.prod.yaml` |
+| `admin.pro.mineor.bj` | `127.0.0.1:3009` (Mineor Pro admin, Angular SPA in nginx-unprivileged) | oryx-frontend | `infra/compose.prod.yaml` |
 
 ### nook deploy (host-nginx mode)
 
@@ -160,6 +162,37 @@ once. Only the apex resolves (no `www.`). HSTS is sent **without** `includeSubDo
 on the apex: other `*.mineor.bj` hosts (mail provider, webmail) are not ours to force
 onto HTTPS. Enabled with `enable-site.sh @ --domain mineor.bj` (certbot reuses the
 VPS account; no email was registered).
+
+### Mineor Pro (api.pro.mineor.bj + admin.pro.mineor.bj)
+
+Two repos, two stacks, two sites. Both default to other ports (8000 / 8081); on this VPS
+set them in each repo's `infra/.env.production`:
+
+| Repo | Variable | Value |
+|---|---|---|
+| oryx-backend | `APP_PORT` | `3008` |
+| oryx-backend | `APP_URL` | `https://api.pro.mineor.bj` |
+| oryx-backend | `FRONTEND_URL`, `CORS_ALLOWED_ORIGINS` | `https://admin.pro.mineor.bj` |
+| oryx-backend | `HEALTHCHECK_URL` | `https://api.pro.mineor.bj/up` |
+| oryx-frontend | `WEB_PORT` | `3009` |
+| oryx-frontend | `API_URL` | `https://api.pro.mineor.bj/api` (baked in at build: changing it means a rebuild) |
+| oryx-frontend | `API_ORIGIN` | `https://api.pro.mineor.bj` |
+| oryx-frontend | `HEALTHCHECK_URL` | `https://admin.pro.mineor.bj/healthz` |
+
+Skip the `deploy/nginx/*.conf` + `certbot --nginx` steps of the apps' own `infra/README.md`:
+the sites live here. Once DNS for both names points at the VPS and the stacks are up:
+
+```sh
+sudo /root/k4yod3/scripts/enable-site.sh api.pro --domain mineor.bj
+sudo /root/k4yod3/scripts/enable-site.sh admin.pro --domain mineor.bj
+```
+
+The API site rate-limits `/api/auth/(login|request-code|verify-code|forgot-password|reset-password)`
+to 30 req/min/IP and everything else to 20 req/s/IP, and hides `/docs/` (open it through
+`ssh -L 3008:127.0.0.1:3008 root@217.160.9.92`). The FedaPay webhook is
+`https://api.pro.mineor.bj/api/webhooks/fedapay`. Security headers of the admin (CSP…) come from
+its container; the host only adds HSTS. An IP allow-list for the admin is ready to uncomment
+in `admin.pro.mineor.bj.conf`.
 
 ## Renewal
 
